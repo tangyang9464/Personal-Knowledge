@@ -164,3 +164,44 @@ spring:
     <scope>provided</scope>
 </dependency>
 ```
+## springboot接收和返回xml数据--jackson
+### 1.导包
+```
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+```
+### 2.接收
+@RequestMapping Map接收,可以自动转换成Map.或者使用java对象(需添加注解,见下文)
+
+### 3.返回
+@ResponseBody 返回,可以使用Map,但是这种返回的格式不能自己命名,为
+```
+<Map></Map>
+```
+使用Java对象,像这样添加注解.
+```
+@JacksonXmlRootElement(localName = "xml")	//根标签名
+class Res {
+    private String ToUserName;
+
+    private String FromUserName;
+
+    private String CreateTime;
+
+    private String MsgType;
+
+    private String Content;
+    @JacksonXmlProperty(localName = "ToUserName")
+    public String getToUserName() {
+        return ToUserName;
+    }
+```
+#### 特别注意:  若字段名首字母大写,则最好@JacksonXmlProperty像如上放置,而不是放在字段上面
+jackson会在get方法上去寻找名称,若@JacksonXmlProperty放在字段上面而不是放在get上面,那么解析出来的名称默认是小写;
+例如ToUserName会变成toUserName,而且会出现重复,变成
+```
+<ToUserName></ToUserName>
+<toUserName></toUserName>
+```
