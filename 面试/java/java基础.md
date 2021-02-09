@@ -24,7 +24,7 @@ if(! (otherObj instanceof()) ) return false;
 if(getClass() != otherObj.getClass()) return false
 
 4.将otherOBj转换成this相同的类型,并进行比较他们的属性是否一致
-``` 
+```
 ## HashCode()
 注意事项:
 此方法与equals()息息相关,重新定义了equals就必须重新定义HashCode;
@@ -50,3 +50,21 @@ if(getClass() != otherObj.getClass()) return false
 
 ### 链表转换红黑树：
 * 链表大于阈值（默认8）就调用treeifyBin方法转换，方法内判断容量是否大于64，若大于则变成红黑树，否则就只是扩容
+
+##### static关键字
+
+###### 修饰方法、变量
+
+表示属于类，多个对象共享。调用时直接用类名就行，不需要创建实例
+
+###### 修饰内部类
+
+这个内部类独立与外围类，可以单独创建使用；不能使用任何外围类的非static变量
+
+###### 修饰代码块
+
+类的static代码块最先执行，只执行依次
+
+###### import static
+
+用于引入类的静态方法和成员，不用加类名就能直接使用
