@@ -12,7 +12,7 @@
 
 ### 私聊
 
-通过命令显示当前在线用户，客户端给对应用户发消息，服务端接收到消息后，判断touser是否在当前服务器，若在直接转发。若不在，就发到kafka相应用户的topic。另一服务器订阅topic消费，找到相应的用户转发消息。
+通过命令显示当前在线用户(redis)，客户端给对应用户发消息，服务端接收到消息后，判断touser是否在当前服务器(redis)，若在直接转发。若不在，就发到kafka相应用户的topic。另一服务器订阅topic消费，找到相应的用户转发消息。
 
 ### 群聊
 
@@ -101,13 +101,47 @@ tomcat是基于http协议的。而netty既是基于NIO的多路复用机制，�
 
 本质是一个数组，可动态扩展，维护了读写两个指针，用于支持顺序读写的操作。
 
--    **堆内存**
+-    **堆内存**：后端编解码模块使用
 
--    **直接内存**
+-    **直接内存**：IO网络读写缓冲区使用，可以免去一次复制
 
      即堆外内存，直接向系统申请的内存。
      它读写socketChannel会少一次拷贝
      正常流程：内核socket--用户--堆外内存--堆内存
+
+- ``byteBuf.alloc()``会得到一个``ByteBufAllocator``，用于分配内存
+
+  其中``unpool``是直接申请一块新内存，``pool``是从已申请的内存中拿一块
+
+### 编解码器编程细节
+
+- **decode**-**ByteToMessage**：
+
+  ```Java
+  // 1.开拓一块ByteBuf用于接收部分字节
+  // 相当于ByteBufAllocator.heapBuffer，使用的是堆内存
+  ByteBuf byteBuf = Unpooled.buffer(len);
+  in.readBytes(byteBuf);
+  try {
+      // 2.将bytebuf转换成字节数组
+      byte[] bytes = byteBuf.array();
+      // 3.将字节数组通过protobuf解码成msg对象
+      MsgProtobuf.ProtocolMsg msg = MsgProtobuf.ProtocolMsg.parseFrom(bytes);
+      if (msg!=null){
+          out.add(msg);
+      }
+  } catch (InvalidProtocolBufferException e) {
+      e.printStackTrace();
+  }
+  ```
+- **encode**-**MessageToByte**：
+
+  ```Java
+  // protobuf编码成字节数组，然后bytebuf写入就好了
+  byte[] bytes = protocolMsg.toByteArray();
+  byteBuf.writeInt(bytes.length);
+  byteBuf.writeBytes(bytes);
+  ```
 
 # RPC系统
 
