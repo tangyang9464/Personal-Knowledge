@@ -203,6 +203,13 @@ tomcat是基于http协议的。而netty既是基于NIO的多路复用机制，�
 
 具有reactor和handler两个组件，reactor负责轮询监听IO事件，在就绪时将任务分发给相应的handler进行非阻塞的处理
 
+### 零拷贝
+
+1. Netty的CompositeByteBuf可以将多个ByteBuf合并成一个逻辑上的ByteBuf，避免的各个ByteBuf之间的拷贝
+2. ByteBuf支持slice操作，可以将一个ByteBuf分解成多个ByteBuf共享同一个内存区域
+3. 通过FileChannel.tranferTo方法可以将文件缓冲区直接发送到目标Channel，而不用通过用户空间
+4. direct buffer用于IO传输，可以免去从用户态拷贝到JVM内存的复制
+
 # RPC系统
 
 ## 使用流程
