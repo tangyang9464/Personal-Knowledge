@@ -26,6 +26,12 @@
 
 ### 断线重连
 
+- 客户端掉线：服务端删除map中的映射，并删除redis中的数据。
+
+  若服务端挂掉，删除redis失败也无所谓。给redis设置一个过期时间，比如客户端和服务端心跳每隔一段时间就更新这个过期时间。然后用户连接的时候直接覆盖redis的数据
+
+- 服务端挂掉：服务端和zookeeper通过心跳机制来检测是否存活，若检测到服务器挂掉就删除对应的节点。redis当中客户端会自动重连覆盖
+
 - 启动失败重连
 	通过回调函数进行重连
 - 运行服务器掉线
@@ -98,6 +104,8 @@ tomcat是基于http协议的。而netty既是基于NIO的多路复用机制，�
 ## Netty
 
 ### 模型
+
+[三种模型详解](https://zhuanlan.zhihu.com/p/87630368)
 
 - BossGroup：负责接收连接，将任务交给Work处理
 - WorkGroup：负责实际的任务处理
@@ -194,6 +202,13 @@ tomcat是基于http协议的。而netty既是基于NIO的多路复用机制，�
 ### Reactor模式（反应器模式）
 
 具有reactor和handler两个组件，reactor负责轮询监听IO事件，在就绪时将任务分发给相应的handler进行非阻塞的处理
+
+### 零拷贝
+
+1. Netty的CompositeByteBuf可以将多个ByteBuf合并成一个逻辑上的ByteBuf，避免的各个ByteBuf之间的拷贝
+2. ByteBuf支持slice操作，可以将一个ByteBuf分解成多个ByteBuf共享同一个内存区域
+3. 通过FileChannel.tranferTo方法可以将文件缓冲区直接发送到目标Channel，而不用通过用户空间
+4. direct buffer用于IO传输，可以免去从用户态拷贝到JVM内存的复制
 
 # RPC系统
 
